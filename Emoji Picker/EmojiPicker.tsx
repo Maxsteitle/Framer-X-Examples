@@ -2,59 +2,75 @@ import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { Frame, addPropertyControls, ControlType } from 'framer';
 import { EmojiCard } from './EmojiCard';
-import * as data from './Test.json';
+import * as data from './EmojiData.json';
 
 export function EmojiPicker(props) {
-	const [description, setDescription] = useState('');
-	const [hoveredEmoji, setHoveredEmoji] = useState('');
-	const [scrollPos, setScrollPos] = useState(0);
-	const [emojis, setEmojis] = useState(data);
-	const [searching, setSearching] = useState(false);
+	// Here i'm creating all the state values using the useState hook
+	const [description, setDescription] = useState(''); // This is the emoji's name
+	const [hoveredEmoji, setHoveredEmoji] = useState(''); // This is the emoji that's being hovered
+	const [scrollPos, setScrollPos] = useState(0); // Storing the scrollPos in a state
+	const [emojis, setEmojis] = useState(data); // Storing all the emojis in a state variable (Can modify with search)
+	const [searching, setSearching] = useState(false); // State used to tell whether or not the component is in search mode
 
+	// Here i'm creating a reference to the scroll (I like the native bounce, so I'm using overflow : auto to achieve this)
 	let scrollerRef = useRef({
 		scrollTop: 0
 	});
 
+	// I'm storing a few colors in here based off the isDarkMode prop. I bailed midway but you get the idea.
 	let colors = {
 		emojiEnabled: props.isDarkMode ? '#EEE' : '#05F',
 		emojiDisabled: props.isDarkMode ? '#666' : '#999'
 	};
 
+	// Here's the click event, pulling from the EmojiCard component
 	function handleClick(emoji) {
 		const { onClick } = props;
 		onClick && onClick(emoji);
 	}
 
+	// Here's the handle event, another event from the EmojiCard component
 	function handleHover(description, emoji) {
 		setDescription(description);
 		setHoveredEmoji(emoji);
 	}
 
+	// This is the search logic, run whenever the input value changes
 	function handleChange(event) {
+		// It goes into "search" mode if the input value isn't nothing
 		setSearching(event.target.value === '' ? false : true);
 
+		// Filter the emojis using the JSON description and first alias in the array.
+		// Notice I changed everything to uppercase to ignore case-sensitive
 		const _filteredEmojis = data.filter(
 			data =>
 				data.description.toUpperCase().includes(event.target.value.toUpperCase()) ||
 				data.aliases[0].toUpperCase().includes(event.target.value.toUpperCase())
 		);
 
+		// I'm now changing the original data state to match the filtered value
 		setEmojis(_filteredEmojis);
 	}
 
+	// This is using the custom hook that checks for the scroll position every .1 seconds
 	useInterval(() => {
+		// Setting the state based on the scroll position
 		setScrollPos(scrollerRef.current.scrollTop);
 	}, 100);
 
+	// Function used to jump to a scroll position. Used when you click on one of the icons
 	function scrollTo(position) {
 		scrollerRef.current.scrollTop = position;
 	}
 
+	// Function used when you mouse out to remove the emoji and description in the footer
 	function clearEmojis() {
 		setDescription('');
 		setHoveredEmoji('');
 	}
 
+	// Here, I'm mapping the data to all of the emojis. This is used when the search state is true.
+	// I used this to get rid of the section headers and put all of the emojis in one group to keep things simple.
 	let allEmojis = emojis.map((item, i) => (
 		<EmojiCard
 			category={item.category}
@@ -66,6 +82,7 @@ export function EmojiPicker(props) {
 		/>
 	));
 
+	// Here's all the sections of the emojis I want to include
 	const emojiTypes = [
 		'People',
 		'Nature',
@@ -78,6 +95,9 @@ export function EmojiPicker(props) {
 	];
 	let emojiSections = [];
 
+	// This is very similar to the allEmojis above, except instead I'm grouping them.
+	// I'm grouping all the emoji's with the same description and putting them inside
+	// of a section.
 	for (let i = 0; i < emojiTypes.length; i++) {
 		const _filteredEmojiByCategory = emojis
 			.filter(item => item.category === emojiTypes[i])
@@ -94,10 +114,15 @@ export function EmojiPicker(props) {
 		emojiSections[i] = emojiSection(emojiTypes[i], _filteredEmojiByCategory, props);
 	}
 
+	// Static variables
 	const CardWidth = 340;
 	const numberOfTabs = 8;
 	const tabWidth = CardWidth / numberOfTabs;
 	const sectionScrollPos = [0, 1583, 2452, 2943, 3392, 4052, 5004, 6462];
+
+	// Function to give the emojis at the top.
+	// They're functions because I want to pass a color depending on if it's light/dark mode
+	// and if it's active/inactive
 	const emojiIcons = color => {
 		return [
 			peopleIcon(color),
@@ -111,6 +136,9 @@ export function EmojiPicker(props) {
 		];
 	};
 
+	// Function used to create the tabs
+	// The logic is basically just saying whether or not the scroll position is within the section.
+	// So, if I'm within the "people" section, the people icon will light up.
 	function createTabs() {
 		let tabs = [];
 		for (let i = 0; i < numberOfTabs; i++) {
@@ -155,7 +183,11 @@ export function EmojiPicker(props) {
 	}
 
 	return (
+		// It's a little messy 😅, but you can see different ways of styling
+		// Some are inline styling, using a function, and using variable created below the component
 		<div
+			// Here i'm extending the background variable instead of passing the prop into a function.
+			// Only downside of this is added code to return section
 			style={{ ...background, background: props.isDarkMode ? '#111' : 'white' }}
 			onMouseLeave={clearEmojis}>
 			{createTabs()}
@@ -184,8 +216,10 @@ export function EmojiPicker(props) {
 					...container,
 					background: props.isDarkMode ? '#111' : 'white'
 				}}>
+				{/* If the searching state is true, return the entire group of emojis filtered by the keyword */}
 				{searching ? emojiSection('Search Results', allEmojis, props) : emojiSections}
 			</div>
+			{/* Here, you can see i'm passing the props to a function for styling  */}
 			<div style={bottomSection(props)}>
 				{hoveredEmoji === '' ? (
 					<div
@@ -229,8 +263,8 @@ export function EmojiPicker(props) {
 }
 
 EmojiPicker.defaultProps = {
-	onClick: undefined,
-	onHover: undefined,
+	onClick: () => null,
+	onHover: () => null,
 	isDarkMode: false,
 	width: 352,
 	height: 405
@@ -246,6 +280,25 @@ addPropertyControls(EmojiPicker, {
 	}
 });
 
+// This is the custom hook. I found this from Dan Abramov
+function useInterval(callback, delay) {
+	const savedCallback: any = useRef();
+
+	useEffect(() => {
+		savedCallback.current = callback;
+	});
+
+	useEffect(() => {
+		function tracker() {
+			savedCallback.current();
+		}
+
+		let id = setInterval(tracker, delay);
+		return () => clearInterval(id);
+	}, [delay]);
+}
+
+// This is a function used to create the sections. Notice I nest everything I want so the code above can be cleaner.
 function emojiSection(sectionTitle: string, emojis: JSX.Element[], props) {
 	return (
 		<div>
@@ -257,6 +310,7 @@ function emojiSection(sectionTitle: string, emojis: JSX.Element[], props) {
 	);
 }
 
+// An example of using a function to determine the styling. It checks the props to see whether it's dark or light mode.
 function sectionHeader(props) {
 	return {
 		fontSize: 18,
@@ -316,6 +370,7 @@ const background: React.CSSProperties = {
 	overflow: 'hidden'
 };
 
+// Making the icons as functions. This way I can reuse the SVG code and just change the fill
 function SearchIcon(props) {
 	return (
 		<svg
@@ -332,23 +387,6 @@ function SearchIcon(props) {
 			/>
 		</svg>
 	);
-}
-
-function useInterval(callback, delay) {
-	const savedCallback: any = useRef();
-
-	useEffect(() => {
-		savedCallback.current = callback;
-	});
-
-	useEffect(() => {
-		function tracker() {
-			savedCallback.current();
-		}
-
-		let id = setInterval(tracker, delay);
-		return () => clearInterval(id);
-	}, [delay]);
 }
 
 function peopleIcon(fill = 'lightgrey') {
