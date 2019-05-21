@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 
 // This is the nested component used for each Emoji Card
 
-// Notice the handleClick, handleHover event that's used also in EmojiPicker.tsx
+// Notice the handleClick, handleHover event that's also used in EmojiPicker.tsx
 // This is used to "lift the state"
 
 // useEffect is run at the very beginning to choose a random CSS class
