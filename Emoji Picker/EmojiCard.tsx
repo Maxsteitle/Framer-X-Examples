@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 
-EmojiCards.defaultProps = {
-	emoji: '🤔',
-	category: 'i am emoji',
-	onClick: undefined,
-	onHover: undefined,
-	description: 'emoji',
-	isDarkMode: false
-};
+// This is the nested component used for each Emoji Card
+
+// Notice the handleClick, handleHover event that's used also in EmojiPicker.tsx
+// This is used to "lift the state"
+
+// useEffect is run at the very beginning to choose a random CSS class
+// and apply as the background color on hover. Every time you reload the
+// background will have a new color.
 
 function EmojiCards(props) {
 	const [variation, setVariation] = useState('');
@@ -38,6 +38,19 @@ function EmojiCards(props) {
 		</div>
 	);
 }
+
+// I can use events as props
+
+EmojiCards.defaultProps = {
+	emoji: '🤔',
+	category: 'i am emoji',
+	description: 'emoji',
+	isDarkMode: false,
+	onClick: () => null,
+	onHover: () => null
+};
+
+// These are my CSS classes it randomly chooses from
 
 const versions = ['card v1', 'card v2', 'card v3', 'card v4'];
 const darkVersions = ['card v5', 'card v6', 'card v7', 'card v8'];
