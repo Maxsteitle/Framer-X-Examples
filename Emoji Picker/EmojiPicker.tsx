@@ -5,7 +5,7 @@ import { EmojiCard } from './EmojiCard';
 import * as data from './EmojiData.json';
 
 export function EmojiPicker(props) {
-	// Here i'm creating all the state values using the useState hook
+	// Here i'm creating all the states using the useState hook
 	const [description, setDescription] = useState(''); // This is the emoji's name
 	const [hoveredEmoji, setHoveredEmoji] = useState(''); // This is the emoji that's being hovered
 	const [scrollPos, setScrollPos] = useState(0); // Storing the scrollPos in a state
@@ -17,30 +17,35 @@ export function EmojiPicker(props) {
 		scrollTop: 0
 	});
 
-	// I'm storing a few colors in here based off the isDarkMode prop. I bailed midway but you get the idea.
+	// I'm storing a few colors in here based off the isDarkMode prop
+	// I show more methods of styling later on
 	let colors = {
 		emojiEnabled: props.isDarkMode ? '#EEE' : '#05F',
 		emojiDisabled: props.isDarkMode ? '#666' : '#999'
 	};
 
-	// Here's the click event, pulling from the EmojiCard component
+	// Here's the click event, pulling from the EmojiCard component.
+	// This is an example of the "lifting state", it passes in the handleClick as a prop
+	// to the EmojiCard.
 	function handleClick(emoji) {
 		const { onClick } = props;
 		onClick && onClick(emoji);
 	}
 
-	// Here's the handle event, another event from the EmojiCard component
+	// Here's the hover event, another event that's "lifting state" from the EmojiCard component
 	function handleHover(description, emoji) {
 		setDescription(description);
 		setHoveredEmoji(emoji);
 	}
 
-	// This is the search logic, run whenever the input value changes
+	// Search Logic
+	// This runs anytime the input value changes
 	function handleChange(event) {
-		// It goes into "search" mode if the input value isn't nothing
+		// It goes into "search" mode if the input isn't blank
+		// This is only used to change which emojis display and the header to "Search Results"
 		setSearching(event.target.value === '' ? false : true);
 
-		// Filter the emojis using the JSON description and first alias in the array.
+		// Filter the emojis using the JSON description and first alias in the array from the JSON.
 		// Notice I changed everything to uppercase to ignore case-sensitive
 		const _filteredEmojis = data.filter(
 			data =>
@@ -49,21 +54,24 @@ export function EmojiPicker(props) {
 		);
 
 		// I'm now changing the original data state to match the filtered value
+		// This is the beauty of react, anytime I change the state it will automatically
+		// update and only show the matching emojis.
 		setEmojis(_filteredEmojis);
 	}
 
 	// This is using the custom hook that checks for the scroll position every .1 seconds
+	// Also referred to as "throttling", this improves performance for scroll events
 	useInterval(() => {
 		// Setting the state based on the scroll position
 		setScrollPos(scrollerRef.current.scrollTop);
 	}, 100);
 
-	// Function used to jump to a scroll position. Used when you click on one of the icons
+	// Function used to jump to a scroll position. Used when you click on one of the icons in the header.
 	function scrollTo(position) {
 		scrollerRef.current.scrollTop = position;
 	}
 
-	// Function used when you mouse out to remove the emoji and description in the footer
+	// Function used when you mouse out to remove the emoji and description in the footer.
 	function clearEmojis() {
 		setDescription('');
 		setHoveredEmoji('');
@@ -183,8 +191,9 @@ export function EmojiPicker(props) {
 	}
 
 	return (
-		// It's a little messy 😅, but you can see different ways of styling
-		// Some are inline styling, using a function, and using variable created below the component
+		// There's many different examples of styling below.
+		// I use inline styling, a function to style, calling the CSS className to style,
+		// and also referencing a variable that I created below the component.
 		<div
 			// Here i'm extending the background variable instead of passing the prop into a function.
 			// Only downside of this is added code to return section
